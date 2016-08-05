@@ -22,4 +22,7 @@ CREATE TABLE links (
 				shr_Id INT NOT NULL,
                 note_Id INT NOT NULL,
                 created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY (id));
+                PRIMARY KEY (id),
+                FOREIGN KEY (shr_Id) REFERENCES sharers(id),
+                FOREIGN KEY (note_Id) REFERENCES notes(id)
+);

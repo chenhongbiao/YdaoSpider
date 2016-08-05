@@ -4,6 +4,52 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
+import pymysql
+
+conn = pymysql.connect(host='localhost',
+                       user='root',
+                       password='faustmeow',
+                       db='mysql',
+                       charset='utf8mb4')
+cur = conn.cursor()
+cur.execute("USE readnote")
+##################################################
+def storeShr(name, photo):
+    "insert sharer if not existed"
+    cur.execute("SELECT * FROM sharers WHERE name = %s", (name))
+    if cur.rowcount == 0:
+        cur.execute("INSERT INTO sharers (name, photo) VALUES (%s, %s)", (name, photo))
+        conn.commit()
+        return cur.lastrowid
+        #get the 'id' attr
+    else:
+        return cur.fetchone()[0]
+        #get the 'first' attr - 'id' attr
+
+def storeNote(title, content, readtimes, praises, updatetime):
+    "insert note if not existed"
+    cur.execute("SELECT * FROM notes WHERE title = %s AND updatetime = %s", 
+                (title, updatetime) )
+    if cur.rowcount == 0:
+        cur.execute("INSERT INTO notes (title, content, readtimes, praises, updatetime) VALUES (%s, %s, %s, %s, %s)", 
+                    (title, content, int(readtimes), int(praises), updatetime))
+        conn.commit()
+        return cur.lastrowid
+    else:
+        return cur.fetchone()[0]
+
+def storeLink(shr_Id, note_Id):
+    #insert link if not existed shr_Id and note_Id  - int
+    cur.execute("SELECT * FROM links WHERE shr_Id = %s AND note_Id = %s", 
+                (int(shr_Id), int(note_Id)) )
+    if cur.rowcount == 0:
+        cur.execute("INSERT INTO links (shr_Id, note_Id) VALUES (%s, %s)", 
+                    (int(shr_Id), int(note_Id)) )
+        conn.commit()
+        return cur.lastrowid
+    else:
+        return cur.fetchone()[0]
+#################################################
 
 driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
 driver.get("http://note.youdao.com/share/?id=9dea9c169bcfbd6a64d2db2fe67b295b&type=note") 
@@ -22,6 +68,7 @@ shr_photo = sharer.find("img",{"class":"user-portrait"}).attrs["src"]
 #src="/yws/api/image/normal/1458615342535?userId=weixinobU7VjgVJUk9NlDKmI3LbSU2uAg4"
 #http://note.youdao.com/yws/api/image/normal/1458615342535?userId=weixinobU7VjgVJUk9NlDKmI3LbSU2uAg4
 shr_name = sharer.find("p",{"class":"user-name"}).attrs["title"]
+shrId = storeShr(shr_name, shr_photo)
 
 #readtimes = bsObj.find("div",{"class":"read-times-container"}).find("span").find("span").get_text()
 readtimes = bsObj.find("div",{"class":"read-times-container"}).find("span",{"class":"read-text"}).find("span").get_text()
@@ -38,6 +85,8 @@ driver.switch_to.frame("content-body")
 ipageSource = driver.page_source
 ibsObj = BeautifulSoup(ipageSource,"html.parser")
 content = ibsObj.find("div",{"id":"noteIFrameContent"})
-print(content.get_text())
+
+noteId = storeNote(title, content.get_text(), readtimes, praisetimes, updatetime)
+storeLink(shrId, noteId)
 
 driver.close()
