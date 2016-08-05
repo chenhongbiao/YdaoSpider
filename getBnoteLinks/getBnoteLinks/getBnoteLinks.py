@@ -15,6 +15,8 @@ wait.until(EC.presence_of_element_located((By.CLASS_NAME, "note-item")))
 
 pageSource = driver.page_source
 bsObj = BeautifulSoup(pageSource,"html.parser")
+#<span id="total-pages">84</span>
+totalpags = int ( bsObj.find("span",{"id":"total-pages"}).get_text() )
 #Collects all internal notebook or note links in home page - the rank hot part
 allbookLinks = set()
 allnoteLinks = set()

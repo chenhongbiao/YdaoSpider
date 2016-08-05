@@ -15,14 +15,15 @@ def jumptopage(nod):
     
     wait = WebDriverWait(driver=driver,timeout=10)
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
-    
+    #find the button in the current page
     driver.find_element_by_link_text(str(nod)).click()
-
+    #jump to the new current page and wait it loaded
     wait = WebDriverWait(driver=driver,timeout=10)
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
-
-    print(driver.find_element_by_class_name("note-item").text)
-    #test whether the jump is successful
+    #print(driver.find_element_by_class_name("note-item").text)
+    pageSource = driver.page_source
+    bsObj = BeautifulSoup(pageSource,"html.parser")
     driver.close()
+    return bsObj
     
 jumptopage(2)
