@@ -8,56 +8,6 @@ import pymysql
 import getsets
 import book
 
-def jumptopage(currentpage, driver):
-    #do something collect the two sets in the current page, then ready to go to the next page
-    pagenoteset = set()
-    pagebookset = set()
-    global noteset
-    global notebookset
-    pageSource = driver.page_source
-    bsObj = BeautifulSoup(pageSource,"html.parser")
-    pagenoteset, pagebookset = getsets.getBnoteLinks(bsObj)
-    noteset = noteset | pagenoteset
-    notebookset = notebookset | pagebookset
-    
-    if (currentpage == totalpages):
-        return  #(two global sets okay)
-    else:
-        #find the next page button in the current page
-        driver.find_element_by_link_text(str(currentpage+1)).click()
-        #jump to the new current page and wait it loaded
-        wait = WebDriverWait(driver=driver,timeout=10)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
-        
-        jumptopage(currentpage+1, driver)
-
-noteset = set()
-notebookset = set()
-totalpages = 0
-currentpage = 1
-homepage = "http://note.youdao.com/dushu/web/index.html"
-
-driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
-driver.get(homepage) 
-wait = WebDriverWait(driver=driver,timeout=10)
-wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
-
-pageSource = driver.page_source
-bsObj = BeautifulSoup(pageSource,"html.parser")
-totalpages = int ( bsObj.find("span",{"id":"total-pages"}).get_text() )
-
-##(two global sets okay)
-jumptopage(currentpage, driver)
-driver.close()
-
-for notebook in notebookset:
-    noteset = noteset | book.getNoteLinks(notebook)
-
-driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
-for note in noteset:
-    readnote(note,driver)
-driver.close()
-print("All note in the database note~")
 
 ##################################################
 conn = pymysql.connect(host='localhost',
@@ -101,9 +51,24 @@ def storeLink(shr_Id, note_Id):
         return cur.lastrowid
     else:
         return cur.fetchone()[0]
+
+def storeNoteLink(noteurl):
+    #insert notelink if not existed
+    cur.execute("SELECT * FROM noteurl WHERE url = %s", (noteurl) )
+    if cur.rowcount == 0:
+        cur.execute("INSERT INTO noteurl (url) VALUES (%s)", (noteurl) )
+        conn.commit()
+        return cur.lastrowid
+    else:
+        return cur.fetchone()[0]
 ##################################################
+
 def readnote(noteurl, driver):
-    driver.get(noteurl)
+    try:
+        driver.get(noteurl)
+    except:
+        print("This note is deleted or unshared")
+        return 
     wait = WebDriverWait(driver=driver,timeout=10)
     wait.until(EC.presence_of_element_located((By.ID, "main-container")))
     
@@ -129,6 +94,71 @@ def readnote(noteurl, driver):
     ipageSource = driver.page_source
     ibsObj = BeautifulSoup(ipageSource,"html.parser")
     content = ibsObj.find("div",{"id":"noteIFrameContent"})
-    
-    noteId = storeNote(title, content, readtimes, praisetimes, updatetime)
+    #or content.get_text() or unicode(content) = str(content) - The str() function returns a string encoded in UTF-8.
+    noteId = storeNote(title, str(content), readtimes, praisetimes, updatetime)
     storeLink(shrId, noteId)
+######################################################
+
+def jumptopage(currentpage, driver):
+    #do something collect the two sets in the current page, then ready to go to the next page
+    pagenoteset = set()
+    pagebookset = set()
+    global noteset
+    global notebookset
+    pageSource = driver.page_source
+    bsObj = BeautifulSoup(pageSource,"html.parser")
+    pagenoteset, pagebookset = getsets.getBnoteLinks(bsObj)
+    noteset = noteset | pagenoteset
+    notebookset = notebookset | pagebookset
+    
+    if (currentpage == totalpages):
+        return  #(two global sets okay)
+    else:
+        #find the next page button in the current page
+        driver.find_element_by_link_text(str(currentpage+1)).click()
+        #jump to the new current page and wait it loaded
+        wait = WebDriverWait(driver=driver,timeout=10)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
+        
+        jumptopage(currentpage+1, driver)
+
+####################################################
+noteset = set()
+notebookset = set()
+totalpages = 0
+currentpage = 1
+homepage = "http://note.youdao.com/dushu/web/index.html"
+
+driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
+driver.get(homepage) 
+wait = WebDriverWait(driver=driver,timeout=10)
+wait.until(EC.presence_of_element_located((By.CLASS_NAME, "currentPage")))
+
+pageSource = driver.page_source
+bsObj = BeautifulSoup(pageSource,"html.parser")
+totalpages = int ( bsObj.find("span",{"id":"total-pages"}).get_text() )
+
+jumptopage(currentpage, driver)
+driver.close()
+
+print("Two global sets collection ready")
+print("The number of notebookset is: ", len(notebookset))
+print("The number of noteset is: ", len(noteset))
+
+for notebook in notebookset:
+    noteset = noteset | book.getNoteLinks(notebook)
+
+#for testing to keep all note links
+for note in noteset:
+    storeNoteLink(note)
+#storeNoteLink("http://deleteme.com")
+#for notebook in notebookset:
+    #storeNoteLink(notebook)
+print("all note links store ready")
+
+driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
+for note in noteset:
+    print("Read and store note: "+ note)
+    readnote(note,driver)
+driver.close()
+print("All notes in the database now~")

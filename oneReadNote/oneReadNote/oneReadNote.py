@@ -51,8 +51,10 @@ def storeLink(shr_Id, note_Id):
         return cur.fetchone()[0]
 #################################################
 
+#pageurl = "http://note.youdao.com/share/?id=793e201fcd098517ddba2d0af9b2eeb9&type=notebook#/5C00F9977C754A19BCBD8EFE088CE416"
+pageurl = "http://note.youdao.com/share/?id=f0328c20102b73dad0a1d7c36c839b66&type=notebook#/c6a2c2136c28c88cf06bbfedc94efbbf"
 driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
-driver.get("http://note.youdao.com/share/?id=9dea9c169bcfbd6a64d2db2fe67b295b&type=note") 
+driver.get(pageurl) 
 
 #time.sleep(2) #wait to make sure the page has entirely loaded
 wait = WebDriverWait(driver=driver,timeout=10)
@@ -86,7 +88,8 @@ ipageSource = driver.page_source
 ibsObj = BeautifulSoup(ipageSource,"html.parser")
 content = ibsObj.find("div",{"id":"noteIFrameContent"})
 
-noteId = storeNote(title, content.get_text(), readtimes, praisetimes, updatetime)
+#Non-pretty printing - bsObj to html string - raw
+noteId = storeNote(title, str(content), readtimes, praisetimes, updatetime)
 storeLink(shrId, noteId)
 
 driver.close()
