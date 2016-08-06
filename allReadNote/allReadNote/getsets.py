@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
-def getBnoteLinksi(bsObj):
+def getBnoteLinks(bsObj):
     #Collects all internal notebook or note links in home page - the rank hot part
     allbookLinks = set()
     allnoteLinks = set()
@@ -15,10 +15,8 @@ def getBnoteLinksi(bsObj):
         elif(Linkparts[1]=="type=notebook"):
             allbookLinks.add("http://note.youdao.com/share/?id="+Linkparts[0]+"&type=notebook")
             
-    #for booklink in allbookLinks:
-        #print(booklink)
-    #for notelink in allnoteLinks:
-        #print(notelink)
-    return notelink, booklink
-        
-    driver.close()
+    for booklink in allbookLinks:
+        print(booklink)
+    for notelink in allnoteLinks:
+        print(notelink)
+    return allnoteLinks, allbookLinks
