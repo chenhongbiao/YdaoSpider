@@ -20,3 +20,6 @@ def getBnoteLinks(bsObj):
     for notelink in allnoteLinks:
         print(notelink)
     return allnoteLinks, allbookLinks
+
+if __name__ == "__main__":
+    print("You ran this module directly (and did not 'import' it).")

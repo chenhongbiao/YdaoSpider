@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import pymysql
-import time
 import getsets
 import book
 
@@ -54,8 +53,10 @@ driver.close()
 for notebook in notebookset:
     noteset = noteset | book.getNoteLinks(notebook)
 
+driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
 for note in noteset:
-    readnote(note)
+    readnote(note,driver)
+driver.close()
 print("All note in the database note~")
 
 ##################################################
@@ -101,8 +102,7 @@ def storeLink(shr_Id, note_Id):
     else:
         return cur.fetchone()[0]
 ##################################################
-def readnote(noteurl):
-    driver = webdriver.PhantomJS(executable_path="D:/Internet-IE/phantomjs-2.1.1-windows/bin/phantomjs")
+def readnote(noteurl, driver):
     driver.get(noteurl)
     wait = WebDriverWait(driver=driver,timeout=10)
     wait.until(EC.presence_of_element_located((By.ID, "main-container")))
@@ -132,4 +132,3 @@ def readnote(noteurl):
     
     noteId = storeNote(title, content, readtimes, praisetimes, updatetime)
     storeLink(shrId, noteId)
-    driver.close()

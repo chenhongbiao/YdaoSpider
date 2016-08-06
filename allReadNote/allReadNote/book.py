@@ -1,7 +1,6 @@
 from urllib.request import urlopen
 from urllib.parse import urlparse
 import json
-import re
 
 #get a notebook url (shareKey or shareId) and return a list of note links
 def getNoteLinks(bookurl):
@@ -41,3 +40,5 @@ def getNoteLinks(bookurl):
 #print(len(notelinks))
 #for notelink in notelinks:
     #print(notelink)
+if __name__ == "__main__":
+    print("You ran this module directly (and did not 'import' it).")
