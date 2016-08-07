@@ -44,3 +44,14 @@ ALTER TABLE notes CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ALTER TABLE notes CHANGE content content MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 #Since utf8mb4 is fully backwards compatible with utf8, no mojibake or other forms of data loss should occur. 
+
+
+CREATE TABLE users (
+                id  INT NOT NULL AUTO_INCREMENT,
+                username VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                is_admin INT(2) UNSIGNED NOT NULL DEFAULT 0,
+                photo VARCHAR(255) NOT NULL DEFAULT './images/no_photo_user.png',
+                PRIMARY KEY(id)
+                );
